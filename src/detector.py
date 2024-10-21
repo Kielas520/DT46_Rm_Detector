@@ -2,12 +2,6 @@ import cv2
 import numpy as np
 import math
 
-mode_params = {"display": 1 , "color": 2}
-light_params = {"light_distance_min": 20, "light_area_min": 5, "light_angle_min": -30, "light_angle_max": 30, "light_angle_tol": 5, "line_angle_tol": 7, "height_tol": 10, "width_tol": 10, "cy_tol": 5}
-armor_params = {"armor_height/width_max": 3.5,"armor_height/width_min": 1,"armor_area_max": 11000,"armor_area_min": 200}
-img_params = {"resolution": (640,480) , "val": 35}
-class_id_params = {"color_map":{1: (255, 255, 0), 0: (128, 0, 128)}, "class_map":{1: 1, 0: 7}}
-
 class Light:
     def __init__(self, rect, color):
         self.color = color
@@ -49,7 +43,7 @@ class Detector:
         img.resized = cv2.resize(img.raw, self.img_params["resolution"])  # 调整图像大小
         img.darken = self.darker(cv2.convertScaleAbs(img.resized, alpha=0.5))  # 调整亮度 - 降低亮度
         img.draw = img.darken.copy()
-        _, img.binary = cv2.threshold(cv2.cvtColor(img.darken, cv2.COLOR_BGR2GRAY), img_params["val"], 255, cv2.THRESH_BINARY)  # 二值化处理
+        _, img.binary = cv2.threshold(cv2.cvtColor(img.darken, cv2.COLOR_BGR2GRAY), self.img_params["val"], 255, cv2.THRESH_BINARY)  # 二值化处理
 
     def adjust(self,rect):
         c, (w, h), angle = rect
@@ -179,10 +173,22 @@ class Detector:
         self.process(frame)
         self.find_lights(frame.darken, frame.binary, frame.draw)
         self.find_armor(frame.draw)
-        if self.mode == 1 : self.display(frame)
+        if self.mode == 1 : self.display(frame)  # noqa: E701
         print(self.armors_dict)
         
 if __name__ == "__main__":
+    mode_params = {"display": 1 , "color": 2}
+    light_params = {"light_distance_min": 20, "light_area_min": 5, 
+                    "light_angle_min": -30, "light_angle_max": 30, 
+                    "light_angle_tol": 5, "line_angle_tol": 7, 
+                    "height_tol": 10, "width_tol": 10, 
+                    "cy_tol": 5}
+    armor_params = {"armor_height/width_max": 3.5,"armor_height/width_min": 1,
+                    "armor_area_max": 11000,"armor_area_min": 200}
+    img_params = {"resolution": (640,480) , 
+                  "val": 35}
+    class_id_params = {"color_map":{1: (255, 255, 0), 0: (128, 0, 128)}, 
+                       "class_map":{1: 1, 0: 7}}
     frame = cv2.imread('./photo/red_2.jpg')
     detector = Detector(mode_params, img_params, light_params, armor_params, class_id_params)
     detector.detect(frame)
