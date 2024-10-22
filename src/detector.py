@@ -94,7 +94,7 @@ class Detector:
         (cx1, cy1), (w1, h1), angle1 = rect1  # 获取第一个旋转矩形的信息
         (cx2, cy2), (w2, h2), angle2 = rect2  # 获取第二个旋转矩形的信息
         distance = math.sqrt((cx1 - cx2) ** 2 + (cy1 - cy2) ** 2)    # 计算中心点之间的距离
-        if distance > 20 :    # 首先判断距离是否大于20
+        if distance > light_params["light_distance_min"] :    # 首先判断距离是否大于20
             angle_diff = min(abs(angle1 - angle2), 360 - abs(angle1 - angle2))  # 计算角度差 # 判断旋转矩形的角度是否接近
             if angle_diff <= light_params["light_angle_tol"]:  # 判断角度差是否在容忍范围内
                 if abs(h1 - h2) <= light_params["height_tol"] and abs(w1 - w2) <= light_params["width_tol"]:  # 判断高宽差
@@ -165,8 +165,7 @@ class Detector:
             
     def display(self,img):
         cv2.imshow("Detected", img.draw)
-        cv2.imshow("Binary", img.binary)
-        cv2.imshow("Raw_Resized", img.resized)
+        cv2.imshow("Binary", img.binary)        #cv2.imshow("Raw_Resized", img.resized)
         
     def detect(self, frame):
         frame = Img(frame)
@@ -178,7 +177,7 @@ class Detector:
         
 if __name__ == "__main__":
     mode_params = {"display": 1 , "color": 2}
-    light_params = {"light_distance_min": 20, "light_area_min": 5, 
+    light_params = {"light_distance_min": 20, "light_area_min": 10, 
                     "light_angle_min": -30, "light_angle_max": 30, 
                     "light_angle_tol": 5, "line_angle_tol": 7, 
                     "height_tol": 10, "width_tol": 10, 
