@@ -1,6 +1,3 @@
-好的，下面是根据你提供的参数字典，进一步完善后的 `README.md` 文件，包含每个参数的详细说明：
-
-```markdown
 # DT46_Rm_Detector
 - 面向对象版本 - 使用 OpenCV
 
@@ -184,6 +181,3 @@ pip install opencv-python numpy
   '366': {'class_id': 1, 'height': 35, 'center': [366, 229]}
 }
 ```
----
-
-希望这个修改后的 `README.md` 能够更好地满足你的需求，包含了详细的参数和函数信息！如有其他修改需求，请随时告知。
