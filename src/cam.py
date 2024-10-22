@@ -2,15 +2,17 @@ import cv2
 from detector import Detector  # 从 detector 导入 Detector 类
 import adjust  # 导入调试代码
 
-mode_params = {"display": 1 , "color": 2}
-class_id_params = {"color_map":{1: (255, 255, 0), 0: (128, 0, 128)}, 
-                    "class_map":{1: 1, 0: 7}}
-
+mode_params = {"display": 1, "color": 2}
+class_id_params = {
+    "color_map": {1: (255, 255, 0), 0: (128, 0, 128)},
+    "class_map": {1: 1, 0: 7},
+}
 
 mode = 2  # 模式设置 0: 视频流调试, 1: 仅运行检测, 2: 静态图调试
 video = True  # 是否识别视频
 url = "./photo/test.mp4"
-image_path = './photo/red_2.jpg'  # 图像路径
+image_path = "./photo/red_2.jpg"  # 图像路径
+
 
 def get_first_available_camera():
     """获取第一个可用的摄像头索引"""
@@ -20,6 +22,7 @@ def get_first_available_camera():
             cap.release()
             return i
     return None  # 没有可用摄像头
+
 
 camera_index = get_first_available_camera()  # 获取可用摄像头
 if camera_index is None:
@@ -38,9 +41,15 @@ if mode == 0:  # 处理视频流
         if not ret:
             print("错误: 无法读取帧")
             break
-        detector = Detector(mode_params, adjust.img_params, adjust.light_params, adjust.armor_params, class_id_params)
+        detector = Detector(
+            mode_params,
+            adjust.img_params,
+            adjust.light_params,
+            adjust.armor_params,
+            class_id_params,
+        )
         detector.detect(frame)  # 使用 detector 进行检测
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
     video_stream.release()
     cv2.destroyAllWindows()
@@ -53,10 +62,16 @@ elif mode == 1:  # 仅运行检测
         ret, frame = video_stream.read()
         if not ret:
             print("错误: 无法读取帧")
-            break           
-        detector = Detector(mode_params, adjust.img_params, adjust.light_params, adjust.armor_params, class_id_params)
+            break
+        detector = Detector(
+            mode_params,
+            adjust.img_params,
+            adjust.light_params,
+            adjust.armor_params,
+            class_id_params,
+        )
         detector.detect(frame)  # 使用 detector 进行检测
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
     video_stream.release()
     cv2.destroyAllWindows()
@@ -67,9 +82,15 @@ elif mode == 2:  # 实时处理静态图像
         print("错误: 无法读取图像。请检查路径:", image_path)
     adjust.setup_windows()  # 创建滑动条窗口
     while True:
-        detector = Detector(mode_params, adjust.img_params, adjust.light_params, adjust.armor_params, class_id_params)
+        detector = Detector(
+            mode_params,
+            adjust.img_params,
+            adjust.light_params,
+            adjust.armor_params,
+            class_id_params,
+        )
         detector.detect(current_frame)  # 使用 detector 进行检测
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
     cv2.destroyAllWindows()
 
