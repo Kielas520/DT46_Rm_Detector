@@ -184,9 +184,8 @@ if __name__ == "__main__":
                   "val": 35}
     color_params = {"armor_color":{1: (255, 255, 0), 0: (128, 0, 128)}, "armor_id":{1: 1, 0: 7}, 
                     "light_color":{1: (200, 71, 90), 0: (0, 100, 255)}, "light_dot":{1: (0, 0, 255), 0: (255, 0, 0)}}
-    frame = cv2.imread('./photo/red_2.jpg')
     detector = Detector(mode_params, img_params, light_params, armor_params, color_params)
-    detector.detect(frame)
+    detector.detect(cv2.imread('./photo/red_2.jpg'))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     
