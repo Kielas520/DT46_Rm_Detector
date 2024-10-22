@@ -188,9 +188,8 @@ if __name__ == "__main__":
                   "val": 35}
     class_id_params = {"color_map":{1: (255, 255, 0), 0: (128, 0, 128)}, 
                        "class_map":{1: 1, 0: 7}}
-    frame = cv2.imread('./photo/red_2.jpg')
     detector = Detector(mode_params, img_params, light_params, armor_params, class_id_params)
-    detector.detect(frame)
+    detector.detect(cv2.imread('./photo/red_2.jpg'))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     
