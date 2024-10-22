@@ -1,7 +1,7 @@
 import cv2
 
 light_params = {"light_distance_min": 20, "light_area_min": 5, 
-                "light_angle_min": -30, "light_angle_max": 30, 
+                "light_angle_min": -35, "light_angle_max": 35, 
                 "light_angle_tol": 5, "line_angle_tol": 7, 
                 "height_tol": 10, "width_tol": 10, "cy_tol": 5}
 armor_params = {"armor_height/width_max": 3.5,"armor_height/width_min": 1,
