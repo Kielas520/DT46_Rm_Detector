@@ -150,10 +150,6 @@ pip install opencv-python numpy math
     - 遍历 **self.lights** 列表，调用 **self.is_armor** 检查灯条组合。
     - 如果发现符合条件的组合，使用 **self.id_armor** 方法为装甲板分配 **ID**，并将其存储在 **self.armors_dict** 字典中。
     - 调用 **self.draw_armors(img_draw)** 绘制装甲板结果。
-    ![装甲板检测示例](/photo/example.jpg)
-    ```bash
-    {'443': {'armor_id': (128, 0, 128), 'height': 101, 'center': [443, 364]}, '264': {'armor_id': (255, 255, 0), 'height': 31, 'center': [264, 241]}, '366': {'armor_id': (255, 255, 0), 'height': 35, 'center': [366, 229]}}
-    ```
 
 #### 检测函数：**`Detector.detect(self, frame)`**
 
@@ -182,10 +178,13 @@ pip install opencv-python numpy math
 
 5. **显示检测结果**:
    - 如果显示模式为 1，调用 **self.display(img)** 方法显示检测后的图像和二值化图像。此时，**img.draw** 中的内容将展示检测到的灯条和装甲板。
-
+![装甲板检测示例](/photo/example.jpg)
+    
 6. **打印装甲板信息**:
    - 最后，打印出装甲板的信息字典 **self.armors_dict**，包含装甲板的 **ID**、中心位置和尺寸信息。
-
+```bash
+ {'443': {'armor_id': (128, 0, 128), 'height': 101, 'center': [443, 364]}, '264': {'armor_id': (255, 255, 0), 'height': 31, 'center': [264, 241]}, '366': {'armor_id': (255, 255, 0), 'height': 35, 'center': [366, 229]}}
+```
 ### 2. 视频流处理模块 (**cam**)
 
 - **功能**: 该模块用于处理来自摄像头的视频流，或读取指定的静态图像文件。根据用户的选择，实时识别装甲板，并在图像上绘制检测结果，以便于观察和分析。
