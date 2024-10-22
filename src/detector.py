@@ -21,7 +21,7 @@ class Img:
         self.binary = None
 
 class Detector:
-    def __init__(self, mode_params, img_params, light_params, armor_params, class_id_params):
+    def __init__(self, mode_params, img_params, light_params, armor_params, color_params):
         self.lights = []
         self.armors = []
         self.armors_dict = {}
@@ -30,8 +30,10 @@ class Detector:
         self.armor_params = armor_params 
         self.mode =  mode_params["display"]
         self.color = mode_params["color"]
-        self.color_map = class_id_params["color_map"]
-        self.class_map = class_id_params["class_map"]
+        self.armor_color = color_params["armor_color"]
+        self.armor_id = color_params["armor_id"]
+        self.light_color = color_params["light_color"]
+        self.light_dot = color_params["light_dot"]
         
     def darker(self, img):
         hsv_image = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)  # 转换为 HSV 颜色空间
@@ -132,7 +134,7 @@ class Detector:
             center, (width, height), angle = armor.rect  # 获取装甲矩形的中心、宽高和角度
             max_size = max(width, height)  # 计算最大尺寸
             self.armors_dict[f"{int(center[0])}"] = {        # 添加装甲信息到字典
-                "class_id": self.class_map[armor.color],  # 添加 class_id
+                "armor_id": self.armor_color[armor.color],  # 添加 armor_id
                 "height": int(max_size),  # 添加高度
                 "center": [int(center[0]), int(center[1])]  # 添加中心点
             }
@@ -144,21 +146,16 @@ class Detector:
 
     def draw_lights(self,img):
         for light in self.lights:
-            if light.color == 0:
-                box = cv2.boxPoints(light.rect).astype(int)  # 获取轮廓点
-                cv2.drawContours(img, [box], 0, (0, 100, 255), 1)  # 绘制橙色轮廓
-                cv2.circle(img, tuple(map(int, light.rect[0])), 3, (255, 0, 0), -1)  # 绘制蓝色中心点
-            if light.color == 1:
-                box = cv2.boxPoints(light.rect).astype(int)  # 获取轮廓点
-                cv2.drawContours(img, [box], 0, (200, 71, 90), 1)  # 绘制紫色轮廓
-                cv2.circle(img, tuple(map(int, light.rect[0])), 1, (0, 0, 255), -1)  # 绘制红色中心点
+            box = cv2.boxPoints(light.rect).astype(int)  # 获取轮廓点
+            cv2.drawContours(img, [box], 0, self.light_color[light.color], 1)  # 绘制紫色轮廓
+            cv2.circle(img, tuple(map(int, light.rect[0])), 1, self.light_dot[light.color], -1)  # 绘制红色中心点
 
     def draw_armors(self, img):
         for armor in self.armors:
             center, (max_size, max_size), angle = armor.rect
             box = cv2.boxPoints(((center[0], center[1]), (max_size, max_size), angle)).astype(int)  # 获取装甲的四个顶点
-            cv2.drawContours(img, [box], 0, self.color_map[armor.color], 2)  # 绘制装甲的轮廓
-            cv2.circle(img, (int(center[0]), int(center[1])), 5, self.color_map[armor.color], -1)  # 绘制装甲中心点
+            cv2.drawContours(img, [box], 0, self.armor_color[armor.color], 2)  # 绘制装甲的轮廓
+            cv2.circle(img, (int(center[0]), int(center[1])), 5, self.armor_color[armor.color], -1)  # 绘制装甲中心点
             center_x, center_y = map(int, armor.rect[0])  # 获取中心坐标
             cv2.putText(img, f"({center_x}, {center_y})", (center_x, center_y), 
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (120, 255, 255), 2)  # 在图像上标记坐标
@@ -177,19 +174,18 @@ class Detector:
         
 if __name__ == "__main__":
     mode_params = {"display": 1 , "color": 2}
-    light_params = {"light_distance_min": 20, "light_area_min": 10, 
+    light_params = {"light_distance_min": 20, "light_area_min": 5, 
                     "light_angle_min": -30, "light_angle_max": 30, 
                     "light_angle_tol": 5, "line_angle_tol": 7, 
-                    "height_tol": 10, "width_tol": 10, 
-                    "cy_tol": 5}
+                    "height_tol": 10, "width_tol": 10, "cy_tol": 5}
     armor_params = {"armor_height/width_max": 3.5,"armor_height/width_min": 1,
                     "armor_area_max": 11000,"armor_area_min": 200}
     img_params = {"resolution": (640,480) , 
                   "val": 35}
-    class_id_params = {"color_map":{1: (255, 255, 0), 0: (128, 0, 128)}, 
-                       "class_map":{1: 1, 0: 7}}
+    color_params = {"armor_color":{1: (255, 255, 0), 0: (128, 0, 128)}, "armor_id":{1: 1, 0: 7}, 
+                    "light_color":{1: (200, 71, 90), 0: (0, 100, 255)}, "light_dot":{1: (0, 0, 255), 0: (255, 0, 0)}}
     frame = cv2.imread('./photo/red_2.jpg')
-    detector = Detector(mode_params, img_params, light_params, armor_params, class_id_params)
+    detector = Detector(mode_params, img_params, light_params, armor_params, color_params)
     detector.detect(frame)
     cv2.waitKey(0)
     cv2.destroyAllWindows()

@@ -2,13 +2,11 @@ import cv2
 from detector import Detector  # 从 detector 导入 Detector 类
 import adjust  # 导入调试代码
 
-mode_params = {"display": 1, "color": 2}
-class_id_params = {
-    "color_map": {1: (255, 255, 0), 0: (128, 0, 128)},
-    "class_map": {1: 1, 0: 7},
-}
+mode_params = {"display": 1 , "color": 2}
+color_params = {"armor_color":{1: (255, 255, 0), 0: (128, 0, 128)}, "armor_id":{1: 1, 0: 7}, 
+                "light_color":{1: (200, 71, 90), 0: (0, 100, 255)}, "light_dot":{1: (0, 0, 255), 0: (255, 0, 0)}}
 
-mode = 2  # 模式设置 0: 视频流调试, 1: 仅运行检测, 2: 静态图调试
+mode = 0  # 模式设置 0: 视频流调试, 1: 仅运行检测, 2: 静态图调试
 video = True  # 是否识别视频
 url = "./photo/test.mp4"
 image_path = "./photo/red_2.jpg"  # 图像路径
@@ -46,7 +44,7 @@ if mode == 0:  # 处理视频流
             adjust.img_params,
             adjust.light_params,
             adjust.armor_params,
-            class_id_params,
+            color_params,
         )
         detector.detect(frame)  # 使用 detector 进行检测
         if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -68,7 +66,7 @@ elif mode == 1:  # 仅运行检测
             adjust.img_params,
             adjust.light_params,
             adjust.armor_params,
-            class_id_params,
+            color_params,
         )
         detector.detect(frame)  # 使用 detector 进行检测
         if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -87,7 +85,7 @@ elif mode == 2:  # 实时处理静态图像
             adjust.img_params,
             adjust.light_params,
             adjust.armor_params,
-            class_id_params,
+            color_params,
         )
         detector.detect(current_frame)  # 使用 detector 进行检测
         if cv2.waitKey(1) & 0xFF == ord("q"):

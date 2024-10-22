@@ -1,24 +1,13 @@
 import cv2
 
-# 设置默认值
-light_params = {
-    "light_distance_min": 20,
-    "light_area_min": 10,
-    "light_angle_min": -30,
-    "light_angle_max": 30,
-    "light_angle_tol": 5,
-    "line_angle_tol": 7,
-    "height_tol": 10,
-    "width_tol": 10,
-    "cy_tol": 5,
-}
-img_params = {"resolution": (640, 480), "val": 35}
-armor_params = {
-    "armor_height/width_max": 3.5,
-    "armor_height/width_min": 1,
-    "armor_area_max": 11000,
-    "armor_area_min": 200,
-}
+light_params = {"light_distance_min": 20, "light_area_min": 5, 
+                "light_angle_min": -30, "light_angle_max": 30, 
+                "light_angle_tol": 5, "line_angle_tol": 7, 
+                "height_tol": 10, "width_tol": 10, "cy_tol": 5}
+armor_params = {"armor_height/width_max": 3.5,"armor_height/width_min": 1,
+                "armor_area_max": 11000,"armor_area_min": 200}
+img_params = {"resolution": (640,480) , 
+                "val": 35}
 
 
 def update_img_param(param, new_val):
@@ -67,7 +56,7 @@ def setup_windows():
     cv2.namedWindow(
         "params",
     )
-    cv2.resizeWindow("params", 640, 480)
+    cv2.resizeWindow("params", 640, 405)
     # 创建滑动条
     cv2.createTrackbar(
         "Thresh",
@@ -135,7 +124,7 @@ def setup_windows():
         lambda new_cy_tol: light_params5("cy_tol", new_cy_tol),
     )  # 创建 cy_tol 滑动条
     cv2.createTrackbar(
-        "light_angle",
+        "lit_ang",
         "params",
         light_params["light_angle_tol"],
         50,
@@ -144,7 +133,7 @@ def setup_windows():
         ),
     )  # 创建 light_angle_tol 滑动条
     cv2.createTrackbar(
-        "line_angle",
+        "lin_ang",
         "params",
         light_params["line_angle_tol"],
         50,
