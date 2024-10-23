@@ -57,6 +57,7 @@ pip install opencv-python numpy math
 
 5. **模式参数字典** (**mode_params**):
    - **display**: 显示模式，0表示不显示图像，1表示显示图像。
+   - **resize**： 图像大小， 0: 不调整, 1: 调整
    - **color**: 颜色模式，0表示识别红色装甲板，1表示识别蓝色装甲板，2表示识别全部装甲板。
 
 #### 辅助函数
@@ -68,6 +69,7 @@ pip install opencv-python numpy math
 2. **`process(self, img)`**:
    - 功能: 对输入图像进行预处理。
    - 过程:
+     - 若图像需要调整大小，则使用 **self.resize** 参数进行缩放。
      - 调整图像大小并存储在 **img.resized** 中。
      - 降低图像亮度并存储在 **img.darken** 中。
      - 复制暗化后的图像到 **img.draw** 中。
@@ -166,6 +168,7 @@ pip install opencv-python numpy math
 2. **图像处理**:
    - 调用 **self.process(img)** 方法，对图像进行预处理。此方法会更新 **Img** 对象的属性：
      - **img.resized** 被设置为调整后的图像，使用 **cv2.resize** 方法根据 **img_params["resolution"]** 进行调整。
+      - 若无需进行调整，即 **img_params["resize"]** 为 **0**，则**img.resized** 为 **img.raw**。
      - **img.darken** 被设置为暗化后的图像，通过亮度降低处理调整图像的亮度。
      - **img.draw** 被设置为 **img.darken** 的副本，用于后续的绘制操作。
      - **img.binary** 通过 **cv2.threshold** 方法进行二值化处理，生成黑白图像，方便后续的轮廓检测。
