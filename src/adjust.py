@@ -40,6 +40,10 @@ def update_armor_params2(param, new_armor_heightwidth_max):
     new_armor_heightwidth_max = new_armor_heightwidth_max / 10  # 将新值除以10
     armor_params[param] = new_armor_heightwidth_max  # 更新装甲板高度宽度最大参数
 
+# 更新装甲板参数的函数（面积最小）
+def update_armor_params3(param, new_armor_area_min):
+    armor_params[param] = new_armor_area_min  # 更新装甲板最小面积参数
+
 # 更新灯条参数的函数（最小灯条距离）
 def light_params1(param, new_light_distance_min):
     light_params[param] = new_light_distance_min  # 更新最小灯条距离参数
@@ -72,12 +76,13 @@ def light_params7(param, new_line_angle_tol):
 def setup_windows():
     # 创建窗口
     cv2.namedWindow("params")  # 创建名为"params"的窗口
-    cv2.resizeWindow("params", (640, 405))  # 调整窗口大小
+    cv2.resizeWindow("params", (640, 445))  # 调整窗口大小
 
     # 创建滑动条
     cv2.createTrackbar("Thresh", "params", img_params["val"], 255, lambda new_val: update_img_param("val", new_val))  # 创建阈值滑动条
 
-    cv2.createTrackbar("armor_area", "params", armor_params["armor_area_max"], 85000, lambda new_armor_area_max: update_armor_params1("armor_area_max", new_armor_area_max))  # 创建装甲板面积最大滑动条
+    cv2.createTrackbar("arm_max", "params", armor_params["armor_area_max"], 85000, lambda new_armor_area_max: update_armor_params1("armor_area_max", new_armor_area_max))  # 创建装甲板面积最大滑动条
+    cv2.createTrackbar("arm_min", "params", armor_params["armor_area_min"], 1500, lambda new_armor_area_min: update_armor_params3("armor_area_min", new_armor_area_min))  # 创建装甲板面积最小滑动条
     cv2.createTrackbar("h/w", "params", int(armor_params["armor_height/width_max"] * 10), 80, lambda new_armor_heightwidth_max: update_armor_params2("armor_height/width_max", new_armor_heightwidth_max))  # 创建装甲板高度宽度最大滑动条
 
     # 添加灯条参数的滑动条

@@ -261,6 +261,9 @@ pip install opencv-python numpy math
     - **`armor_area_max`**: 
       - 类型: 整数
       - 功能: 装甲板的最大面积。
+    - **`armor_area_min`**: 
+      - 类型: 整数
+      - 功能: 装甲板的最小面积。
 
   3. **图像参数** (**img_params**):
     - **`val`**: 

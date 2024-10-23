@@ -16,7 +16,7 @@ color_params = {
     "light_dot": {1: (0, 0, 255), 0: (255, 0, 0)}  # 灯点颜色
 }
 
-mode = 1  # 模式设置 0: 视频流调试, 1: 仅运行检测, 2: 静态图调试
+mode = 2  # 模式设置 0: 视频流调试, 1: 仅运行检测, 2: 静态图调试
 video = True  # 是否识别视频
 url = "./photo/test.mp4"  # 视频文件路径
 image_path = "./photo/red_2.jpg"  # 图像路径
