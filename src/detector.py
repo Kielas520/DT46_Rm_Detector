@@ -30,7 +30,8 @@ class Detector:  # 定义检测器类
         self.armor_params = armor_params  # 装甲板参数
         self.mode = mode_params["display"]  # 显示模式
         self.color = mode_params["color"]  # 颜色模式
-        self.resize = mode_params["resize"]
+        self.resize_in = mode_params["resize_in"] # 输入图像是否要经过调整 0: 不调整, 1: 调整
+        self.resize_out = mode_params["resize_out"] # 输出图像是否要经过调整 0: 不调整, 1: 调整
         self.armor_color = color_params["armor_color"]  # 装甲板颜色映射
         self.armor_id = color_params["armor_id"]  # 装甲板 ID 映射
         self.light_color = color_params["light_color"]  # 灯条颜色映射
@@ -43,7 +44,7 @@ class Detector:  # 定义检测器类
         return darker_image  # 返回暗化后的图像
     
     def process(self, img):  # 处理图像的函数
-        if self.resize == 1 : img.resized = cv2.resize(img.raw, self.img_params["resolution"])  # 如果需要调整图像大小才进行reize操作  # noqa: E701
+        if self.resize_in == 1 : img.resized = cv2.resize(img.raw, self.img_params["resolution_in"])  # 如果需要调整图像大小才进行reize操作  # noqa: E701
         img.darken = self.darker(cv2.convertScaleAbs(img.resized, alpha=0.5))  # 调整亮度，降低亮度
         img.draw = img.darken.copy()  # 复制暗化后的图像用于绘制
         _, img.binary = cv2.threshold(cv2.cvtColor(img.darken, cv2.COLOR_BGR2GRAY), self.img_params["val"], 255, cv2.THRESH_BINARY)  # 二值化处理
@@ -162,8 +163,8 @@ class Detector:  # 定义检测器类
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (120, 255, 255), 2)  # 绘制文本
 
     def display(self, img):  # 显示图像的函数
-        cv2.imshow("Detected", img.draw)  # 显示检测后的图像
-        cv2.imshow("Binary", img.binary)  # 显示二值化图像
+        cv2.imshow("Detected", cv2.resize(img.draw,self.img_params["resolution_out"]) if self.resize_out == 1 else img.draw)  # 显示检测后的图像
+        cv2.imshow("Binary", cv2.resize(img.binary,self.img_params["resolution_out"]) if self.resize_out == 1 else img.binary)  # 显示二值化图像
         
     def detect(self, frame):  # 检测函数
         frame = Img(frame)  # 创建 Img 对象
@@ -178,7 +179,8 @@ if __name__ == "__main__":  # 主程序入口
     # 模式参数字典
     mode_params = {
         "display": 1,  # 模式参数 0: 不显示图像, 1: 显示图像
-        "resize": 1, # 图像是否要经过调整 0: 不调整, 1: 调整
+        "resize_in": 1, # 输入图像是否要经过调整 0: 不调整, 1: 调整
+        "resize_out": 0, # 输出图像是否要经过调整 0: 不调整, 1: 调整
         "color": 2  # 颜色参数 0: 识别红色装甲板, 1: 识别蓝色装甲板, 2: 识别全部装甲板
     }
     # 灯条参数字典
@@ -202,7 +204,8 @@ if __name__ == "__main__":  # 主程序入口
     }
     # 图像参数字典
     img_params = {
-        "resolution": (640, 480),  # 图像分辨率
+        "resolution_in": (640, 480),  # 输入图像分辨率
+        "resolution_out": (640, 480), # 输出图像分辨率
         "val": 35  # 参数值
     }
     # 颜色参数字典

@@ -6,9 +6,9 @@ light_params = {
     "light_area_min": 5,  # 最小灯条面积
     "light_angle_min": -35,  # 最小灯条角度
     "light_angle_max": 35,  # 最大灯条角度
-    "light_angle_tol": 5,  # 灯条角度容差
-    "line_angle_tol": 7,  # 线角度容差
-    "height_tol": 10,  # 高度容差
+    "light_angle_tol": 7,  # 灯条角度容差
+    "line_angle_tol": 3,  # 线角度容差
+    "height_tol": 21,  # 高度容差
     "width_tol": 10,  # 宽度容差
     "cy_tol": 5  # 中心点的y轴容差
 }
@@ -23,7 +23,8 @@ armor_params = {
 
 # 图像参数字典
 img_params = {
-    "resolution": (640, 480),  # 图像分辨率
+    "resolution_in": (640, 480),  # 输入图像分辨率
+    "resolution_out": (640, 480), # 输出图像分辨率
     "val": 35  # 参数值
 }
 

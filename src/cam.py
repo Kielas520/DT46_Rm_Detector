@@ -5,7 +5,8 @@ import adjust  # 导入调试代码
 # 模式参数字典
 mode_params = {
     "display": 1,  # 模式参数 0: 不显示图像, 1: 显示图像
-    "resize": 1, # 图像是否要经过调整 0: 不调整, 1: 调整
+    "resize_in": 1, # 输入图像是否要经过调整 0: 不调整, 1: 调整
+    "resize_out": 0, # 输出图像是否要经过调整 0: 不调整, 1: 调整
     "color": 2  # 颜色参数 0: 识别红色装甲板, 1: 识别蓝色装甲板, 2: 识别全部装甲板
 }
 
@@ -29,7 +30,7 @@ def get_first_available_camera():
         cap = cv2.VideoCapture(i)  # 尝试打开摄像头
         if cap.isOpened():  # 检查摄像头是否打开成功
             cap.release()  # 释放摄像头
-            return i  # 返回可用的摄像头索引
+            return i+1  # 返回可用的摄像头索引
     return None  # 没有可用摄像头
 
 camera_index = get_first_available_camera()  # 获取可用摄像头
