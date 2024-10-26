@@ -1,77 +1,81 @@
 import cv2  # 导入 OpenCV 库
 
+flag = False
+
 # 灯条参数字典
-light_params = {
-    "light_distance_min": 20,  # 最小灯条距离
-    "light_area_min": 5,  # 最小灯条面积
-    "light_angle_min": -35,  # 最小灯条角度
-    "light_angle_max": 35,  # 最大灯条角度
-    "light_angle_tol": 7,  # 灯条角度容差
-    "line_angle_tol": 3,  # 线角度容差
-    "height_tol": 21,  # 高度容差
-    "width_tol": 10,  # 宽度容差
-    "cy_tol": 5  # 中心点的y轴容差
-}
-
+light_params = {}
 # 装甲板参数字典
-armor_params = {
-    "armor_height/width_max": 3.5,  # 装甲板高度与宽度最大比值
-    "armor_height/width_min": 1,  # 装甲板高度与宽度最小比值
-    "armor_area_max": 11000,  # 装甲板最大面积
-    "armor_area_min": 200  # 装甲板最小面积
-}
-
+armor_params = {}
 # 图像参数字典
-img_params = {
-    "resolution_in": (640, 480),  # 输入图像分辨率
-    "resolution_out": (640, 480), # 输出图像分辨率
-    "val": 35  # 参数值
-}
+img_params = {}
+
 
 # 更新图像参数的函数
 def update_img_param(param, new_val):
+    global flag
     img_params[param] = new_val  # 更新图像参数
+    flag = True
 
 # 更新装甲板参数的函数（面积最大）
 def update_armor_params1(param, new_armor_area_max):
+    global flag
     armor_params[param] = new_armor_area_max  # 更新装甲板最大面积参数
+    flag = True
 
 # 更新装甲板参数的函数（高度宽度最大）
 def update_armor_params2(param, new_armor_heightwidth_max):
+    global flag
     new_armor_heightwidth_max = new_armor_heightwidth_max / 10  # 将新值除以10
     armor_params[param] = new_armor_heightwidth_max  # 更新装甲板高度宽度最大参数
+    flag = True
 
 # 更新装甲板参数的函数（面积最小）
 def update_armor_params3(param, new_armor_area_min):
+    global flag
     armor_params[param] = new_armor_area_min  # 更新装甲板最小面积参数
+    flag = True
 
 # 更新灯条参数的函数（最小灯条距离）
 def light_params1(param, new_light_distance_min):
+    global flag
     light_params[param] = new_light_distance_min  # 更新最小灯条距离参数
+    flag = True
 
 # 更新灯条参数的函数（最小灯条面积）
 def light_params2(param, new_light_area_min):
+    global flag
     light_params[param] = new_light_area_min  # 更新最小灯条面积参数
+    flag = True
 
 # 更新灯条参数的函数（高度容差）
 def light_params3(param, new_height_tol):
+    global flag
     light_params[param] = new_height_tol  # 更新高度容差参数
+    flag = True
 
 # 更新灯条参数的函数（宽度容差）
 def light_params4(param, new_width_tol):
+    global flag
     light_params[param] = new_width_tol  # 更新宽度容差参数
+    flag = True
 
 # 更新灯条参数的函数（中心点y轴容差）
 def light_params5(param, new_cy_tol):
+    global flag
     light_params[param] = new_cy_tol  # 更新中心点y轴容差参数
+    flag = True
 
 # 更新灯条参数的函数（灯条角度容差）
 def light_params6(param, new_light_angle_tol):
+    global flag
     light_params[param] = new_light_angle_tol  # 更新灯条角度容差参数
+    flag = True
 
 # 更新灯条参数的函数（线角度容差）
 def light_params7(param, new_line_angle_tol):
+    global flag
     light_params[param] = new_line_angle_tol  # 更新线角度容差参数
+    flag = True
 
 # 创建窗口和滑动条的函数
 def setup_windows():

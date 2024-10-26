@@ -66,6 +66,7 @@ class Detector:  # 定义检测器类
                     return False  # 不相交则返回 False
     
     def find_lights(self, img_darken, img_binary):  # 查找灯条的函数
+        lights = []
         contours, _ = cv2.findContours(img_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # 查找轮廓
         lights_filtered = [  # 过滤灯条
             self.adjust(cv2.minAreaRect(contour)) for contour in contours 
@@ -83,10 +84,13 @@ class Detector:  # 定义检测器类
             sum_r, sum_b = np.sum(masked_img[:, :, 2]), np.sum(masked_img[:, :, 0])  # 计算红色和蓝色的总和
             if self.color in [1, 2] and sum_b > sum_r:  # 根据模式识别颜色
                 light_blue = Light(rect, 1)  # 创建蓝色灯条对象
-                self.lights.append(light_blue)  # 添加蓝色灯条
+                lights.append(light_blue)  # 添加蓝色灯条
             if self.color in [0, 2] and sum_r > sum_b:  # 根据模式识别颜色
                 light_red = Light(rect, 0)  # 创建红色灯条对象
-                self.lights.append(light_red)  # 添加红色灯条
+                lights.append(light_red)  # 添加红色灯条
+                
+        self.lights = lights
+        return self.lights
 
     def is_close(self, rect1, rect2, light_params):  # 检查两个矩形是否接近
         (cx1, cy1), (w1, h1), angle1 = rect1  # 获取第一个旋转矩形的信息
@@ -106,6 +110,7 @@ class Detector:  # 定义检测器类
         return False  # 不满足条件则返回 False
 
     def is_armor(self, lights):  # 检查是否为装甲板的函数
+        armors = []
         processed_indices = set()  # 用于存储已处理的矩形索引
         lights_count = len(lights)  # 存储列表长度，避免重复计算
         for i in range(lights_count):  # 遍历所有灯条
@@ -122,18 +127,24 @@ class Detector:  # 定义检测器类
                     if self.armor_params["armor_height/width_min"] <= armor_flit[1][1] / armor_flit[1][0] <= self.armor_params["armor_height/width_max"]:  # 限制识别到的装甲板矩形高宽比
                         armor = Armor(self.adjust(armor_flit))  # 创建装甲板对象
                         armor.color = light.color  # 设置装甲板颜色
-                        self.armors.append(armor)  # 添加装甲板到列表
+                        armors.append(armor)  # 添加装甲板到列表
                         processed_indices.update([i] + close_lights)  # 将已处理的矩形索引添加到 processed_indices 中
+        
+        self.armors = armors
+        return self.armors
 
     def id_armor(self):  # 为装甲板分配 ID 的函数
+        armors_dict = {}
         for armor in self.armors:  # 遍历所有装甲板矩形
             center, (width, height), angle = armor.rect  # 获取装甲板矩形的中心、宽高和角度
             max_size = max(width, height)  # 计算最大尺寸
-            self.armors_dict[f"{int(center[0])}"] = {  # 添加装甲板信息到字典
+            armors_dict[f"{int(center[0])}"] = {  # 添加装甲板信息到字典
                 "armor_id": self.armor_color[armor.color],  # 添加 armor_id
                 "height": int(max_size),  # 添加高度
                 "center": [int(center[0]), int(center[1])]  # 添加中心点
             }
+        self.armors_dict = armors_dict
+        return self.armors_dict
     
     def find_armor(self):  # 查找装甲板的函数
         self.is_armor(self.lights)  # 查找装甲板
@@ -207,8 +218,6 @@ if __name__ == "__main__":  # 主程序入口
     }
     # 图像参数字典
     img_params = {
-        "resolution_in": (640, 480),  # 输入图像分辨率
-        "resolution_out": (640, 480), # 输出图像分辨率
         "val": 35  # 参数值
     }
     # 颜色参数字典
