@@ -7,13 +7,13 @@ light_params = {}
 # 装甲板参数字典
 armor_params = {}
 # 图像参数字典
-img_params = {}
-
+binary_val = None
 
 # 更新图像参数的函数
-def update_img_param(param, new_val):
+def update_img_param(new_val):
     global flag
-    img_params[param] = new_val  # 更新图像参数
+    global binary_val
+    binary_val = new_val  # 更新图像参数
     flag = True
 
 # 更新装甲板参数的函数（面积最大）
@@ -84,7 +84,7 @@ def setup_windows():
     cv2.resizeWindow("params", (640, 445))  # 调整窗口大小
 
     # 创建滑动条
-    cv2.createTrackbar("Thresh", "params", img_params["val"], 255, lambda new_val: update_img_param("val", new_val))  # 创建阈值滑动条
+    cv2.createTrackbar("bin_val", "params", binary_val, 255, lambda new_val: update_img_param(new_val))  # 创建阈值滑动条
 
     cv2.createTrackbar("arm_max", "params", armor_params["armor_area_max"], 85000, lambda new_armor_area_max: update_armor_params1("armor_area_max", new_armor_area_max))  # 创建装甲板面积最大滑动条
     cv2.createTrackbar("arm_min", "params", armor_params["armor_area_min"], 1500, lambda new_armor_area_min: update_armor_params3("armor_area_min", new_armor_area_min))  # 创建装甲板面积最小滑动条

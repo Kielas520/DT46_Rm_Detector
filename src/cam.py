@@ -13,7 +13,7 @@ def get_first_available_camera():
     return None  # 没有可用摄像头
 
 def main():
-    detector = Detector(detect_mode, img_params, light_params, armor_params, color_params)  # 创建检测器对象
+    detector = Detector(detect_mode, binary_val, light_params, armor_params, color_params)  # 创建检测器对象
     camera_index = get_first_available_camera()  # 获取可用摄像头
     if camera_index is None:  # 如果没有找到可用摄像头
         print("错误: 没有找到可用的摄像头。")
@@ -34,7 +34,7 @@ def main():
             detector.detect(frame)  # 使用 detector 进行检测
             detector.display()
             if adjust.flag:
-                detector.img_params = adjust.img_params
+                detector.binary_val = adjust.binary_val
                 detector.light_params = adjust.light_params
                 detector.armor_params = adjust.armor_params
                 adjust.flag = False
@@ -96,9 +96,8 @@ if __name__ == "__main__":
         "armor_area_min": 200  # 装甲板最小面积
     }
     # 图像参数字典
-    img_params = {
-        "val": 35  # 参数值
-    }
+    binary_val = 35  # 参数值
+
     # 颜色参数字典
     color_params = {
         "armor_color": {1: (255, 255, 0), 0: (128, 0, 128)},  # 装甲板颜色映射
@@ -107,7 +106,7 @@ if __name__ == "__main__":
         "light_dot": {1: (0, 0, 255), 0: (255, 0, 0)}  # 灯条中心点颜色映射
     }
     
-    adjust.img_params = img_params
+    adjust.binary_val = binary_val
     adjust.light_params = light_params
     adjust.armor_params = armor_params
     

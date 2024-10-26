@@ -13,22 +13,18 @@ class Armor:  # 定义装甲板类
         self.rect = rect  # 设置装甲板矩形
 
 class Detector:  # 定义检测器类
-    def __init__(self, detect_mode, img_params, light_params, armor_params, color_params):  # 初始化检测器
+    def __init__(self, detect_mode, binary_val, light_params, armor_params, color_params):  # 初始化检测器
         self.lights = []  # 存储灯条列表
         self.armors = []  # 存储装甲板列表
         self.armors_dict = {}  # 存储装甲板信息的字典
-        
-        self.img_params = img_params  # 图像参数
+        self.binary_val = binary_val  # 二值化阈值
         self.light_params = light_params  # 灯条参数
         self.armor_params = armor_params  # 装甲板参数
-        
         self.color = detect_mode  # 颜色模式
-
         self.armor_color = color_params["armor_color"]  # 装甲板颜色映射
         self.armor_id = color_params["armor_id"]  # 装甲板 ID 映射
         self.light_color = color_params["light_color"]  # 灯条颜色映射
         self.light_dot = color_params["light_dot"]  # 灯条中心点颜色映射
-
         self.img = None
         self.img_binary = None
         self.img_darken = None
@@ -42,7 +38,7 @@ class Detector:  # 定义检测器类
     def process(self, img):  # 处理图像的函数
         self.img = img
         self.img_darken = self.darker(cv2.convertScaleAbs(img, alpha=0.5))  # 调整亮度，降低亮度
-        _, self.img_binary = cv2.threshold(cv2.cvtColor(self.img_darken, cv2.COLOR_BGR2GRAY), self.img_params["val"], 255, cv2.THRESH_BINARY)  # 二值化处理
+        _, self.img_binary = cv2.threshold(cv2.cvtColor(self.img_darken, cv2.COLOR_BGR2GRAY), self.binary_val, 255, cv2.THRESH_BINARY)  # 二值化处理
         return self.img_darken, self.img_binary
     def adjust(self, rect):  # 调整矩形的函数
         c, (w, h), angle = rect  # 解包矩形的中心、宽高和角度
@@ -88,7 +84,6 @@ class Detector:  # 定义检测器类
             if self.color in [0, 2] and sum_r > sum_b:  # 根据模式识别颜色
                 light_red = Light(rect, 0)  # 创建红色灯条对象
                 lights.append(light_red)  # 添加红色灯条
-                
         self.lights = lights
         return self.lights
 
@@ -129,7 +124,6 @@ class Detector:  # 定义检测器类
                         armor.color = light.color  # 设置装甲板颜色
                         armors.append(armor)  # 添加装甲板到列表
                         processed_indices.update([i] + close_lights)  # 将已处理的矩形索引添加到 processed_indices 中
-        
         self.armors = armors
         return self.armors
 
@@ -178,12 +172,9 @@ class Detector:  # 定义检测器类
     def display(self):  # 显示图像的函数
         cv2.namedWindow("Binary",cv2.WINDOW_NORMAL)       
         cv2.imshow("Binary", self.img_binary)  # 显示二值化图像
-
         drawn = self.draw_img()
-
         cv2.namedWindow("Detected",cv2.WINDOW_NORMAL)
         cv2.imshow("Detected", drawn)
-
         # cv2.namedWindow("raw",cv2.WINDOW_NORMAL)
         # cv2.imshow("raw", self.img)       
         
@@ -197,6 +188,8 @@ class Detector:  # 定义检测器类
 if __name__ == "__main__":  # 主程序入口
     # 模式参数字典
     detect_mode =  2  # 颜色参数 0: 识别红色装甲板, 1: 识别蓝色装甲板, 2: 识别全部装甲板
+    # 图像参数字典
+    binary_val = 35  
     # 灯条参数字典
     light_params = {
         "light_distance_min": 20,  # 最小灯条距离
@@ -216,10 +209,6 @@ if __name__ == "__main__":  # 主程序入口
         "armor_area_max": 11000,  # 装甲板最大面积
         "armor_area_min": 200  # 装甲板最小面积
     }
-    # 图像参数字典
-    img_params = {
-        "val": 35  # 参数值
-    }
     # 颜色参数字典
     color_params = {
         "armor_color": {1: (255, 255, 0), 0: (128, 0, 128)},  # 装甲板颜色映射
@@ -227,7 +216,7 @@ if __name__ == "__main__":  # 主程序入口
         "light_color": {1: (200, 71, 90), 0: (0, 100, 255)},  # 灯条颜色映射
         "light_dot": {1: (0, 0, 255), 0: (255, 0, 0)}  # 灯条中心点颜色映射
     }
-    detector = Detector(detect_mode, img_params, light_params, armor_params, color_params)  # 创建检测器对象
+    detector = Detector(detect_mode, binary_val, light_params, armor_params, color_params)  # 创建检测器对象
     detector.detect(cv2.imread('./photo/red_2.jpg'))  # 读取图像并进行检测
     detector.display()  # 显示图像
     cv2.waitKey(0)  # 等待按键
