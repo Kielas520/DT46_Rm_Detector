@@ -14,20 +14,20 @@ class Armor:  # 定义装甲板类
 
 class Detector:  # 定义检测器类
     def __init__(self, detect_mode, binary_val, light_params, armor_params, color_params):  # 初始化检测器
-        self.lights = []  # 存储灯条列表
-        self.armors = []  # 存储装甲板列表
-        self.armors_dict = {}  # 存储装甲板信息的字典
+        self.img = None
+        self.img_binary = None
+        self.img_darken = None
         self.binary_val = binary_val  # 二值化阈值
+        self.color = detect_mode  # 颜色模式
         self.light_params = light_params  # 灯条参数
         self.armor_params = armor_params  # 装甲板参数
-        self.color = detect_mode  # 颜色模式
         self.armor_color = color_params["armor_color"]  # 装甲板颜色映射
         self.armor_id = color_params["armor_id"]  # 装甲板 ID 映射
         self.light_color = color_params["light_color"]  # 灯条颜色映射
         self.light_dot = color_params["light_dot"]  # 灯条中心点颜色映射
-        self.img = None
-        self.img_binary = None
-        self.img_darken = None
+        self.lights = []  # 存储灯条列表
+        self.armors = []  # 存储装甲板列表
+        self.armors_dict = {}  # 存储装甲板信息的字典
         
     def darker(self, img):  # 暗化图像函数
         hsv_image = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)  # 转换为 HSV 颜色空间
@@ -40,6 +40,7 @@ class Detector:  # 定义检测器类
         self.img_darken = self.darker(cv2.convertScaleAbs(img, alpha=0.5))  # 调整亮度，降低亮度
         _, self.img_binary = cv2.threshold(cv2.cvtColor(self.img_darken, cv2.COLOR_BGR2GRAY), self.binary_val, 255, cv2.THRESH_BINARY)  # 二值化处理
         return self.img_darken, self.img_binary
+    
     def adjust(self, rect):  # 调整矩形的函数
         c, (w, h), angle = rect  # 解包矩形的中心、宽高和角度
         if w > h:  # 如果宽度大于高度
@@ -168,15 +169,12 @@ class Detector:  # 定义检测器类
         drawn = self.draw_lights(drawn)  # 绘制灯条
         return drawn
 
-    
     def display(self):  # 显示图像的函数
         cv2.namedWindow("Binary",cv2.WINDOW_NORMAL)       
         cv2.imshow("Binary", self.img_binary)  # 显示二值化图像
         drawn = self.draw_img()
         cv2.namedWindow("Detected",cv2.WINDOW_NORMAL)
-        cv2.imshow("Detected", drawn)
-        # cv2.namedWindow("raw",cv2.WINDOW_NORMAL)
-        # cv2.imshow("raw", self.img)       
+        cv2.imshow("Detected", drawn)      # cv2.namedWindow("raw",cv2.WINDOW_NORMAL) # cv2.imshow("raw", self.img)       
         
     def detect(self, frame):  # 检测函数
         frame_darken, frame_binary = self.process(frame)  # 处理图像
@@ -198,8 +196,8 @@ if __name__ == "__main__":  # 主程序入口
         "light_angle_max": 35,  # 最大灯条角度
         "light_angle_tol": 5,  # 灯条角度容差
         "line_angle_tol": 7,  # 线角度容差
-        "height_tol": 10,  # 高度容差
-        "width_tol": 10,  # 宽度容差
+        "height_tol": 15,  # 高度容差
+        "width_tol": 15,  # 宽度容差
         "cy_tol": 5  # 中心点的y轴容差
     }
     # 装甲板参数字典
