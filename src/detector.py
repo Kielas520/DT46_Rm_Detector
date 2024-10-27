@@ -1,6 +1,7 @@
 import cv2  # 导入 OpenCV 库
 import numpy as np  # 导入 NumPy 库
 import math  # 导入数学库
+from loguru import logger
 
 class Light:  # 定义灯条类
     def __init__(self, rect, color):  # 初始化灯条的矩形和颜色
@@ -179,8 +180,7 @@ class Detector:  # 定义检测器类
     def detect(self, frame):  # 检测函数
         frame_darken, frame_binary = self.process(frame)  # 处理图像
         self.find_lights(frame_darken, frame_binary)  # 查找灯条
-        self.find_armor()  # 查找装甲板
-        print(self.armors_dict)  # 打印装甲板信息字典
+        self.find_armor()  # 查找装甲板        print(self.armors_dict)  # 打印装甲板信息字典
         return self.armors_dict
         
 if __name__ == "__main__":  # 主程序入口
@@ -215,7 +215,8 @@ if __name__ == "__main__":  # 主程序入口
         "light_dot": {1: (0, 0, 255), 0: (255, 0, 0)}  # 灯条中心点颜色映射
     }
     detector = Detector(detect_mode, binary_val, light_params, armor_params, color_params)  # 创建检测器对象
-    detector.detect(cv2.imread('./photo/red_2.jpg'))  # 读取图像并进行检测
+    info = detector.detect(cv2.imread('./photo/red_2.jpg'))  # 读取图像并进行检测
+    logger.info(info) # 打印检测结果
     detector.display()  # 显示图像
     cv2.waitKey(0)  # 等待按键
     cv2.destroyAllWindows()  # 关闭所有窗口
