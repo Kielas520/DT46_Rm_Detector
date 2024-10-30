@@ -75,7 +75,7 @@ class Adjust:
         cv2.createTrackbar("arm_min", "params", self.armor_params["armor_area_min"], 50000, lambda new_armor_area_min: self.armor_area_min("armor_area_min", new_armor_area_min))  # 创建装甲板面积最小滑动条
         cv2.createTrackbar("h/w", "params", int(self.armor_params["armor_height/width_max"] * 10), 80, lambda new_armor_heightwidth_max: self.armor_heightwidth_max("armor_height/width_max", new_armor_heightwidth_max))  # 创建装甲板高度宽度最大滑动条
         # 添加灯条参数的滑动条
-        cv2.createTrackbar("distance", "params", self.light_params["light_distance_min"], 20000, lambda new_light_distance_min: self.light_distance_min("light_distance_min", new_light_distance_min))  # 创建最小灯条距离滑动条
+        cv2.createTrackbar("distance", "params", self.light_params["light_distance_min"], 4000, lambda new_light_distance_min: self.light_distance_min("light_distance_min", new_light_distance_min))  # 创建最小灯条距离滑动条
         cv2.createTrackbar("area", "params", self.light_params["light_area_min"], 300, lambda new_light_area_min: self.light_area_min("light_area_min", new_light_area_min))  # 创建最小灯条面积滑动条
         cv2.createTrackbar("height", "params", self.light_params["height_tol"], 500, lambda new_height_tol: self.height_tol("height_tol", new_height_tol))  # 创建高度容差滑动条
         cv2.createTrackbar("width", "params", self.light_params["width_tol"], 500, lambda new_width_tol: self.width_tol("width_tol", new_width_tol))  # 创建宽度容差滑动条
