@@ -18,7 +18,7 @@ class Cam():
             cap = cv2.VideoCapture(i)  # 尝试打开摄像头
             if cap.isOpened():  # 检查摄像头是否打开成功
                 cap.release()  # 释放摄像头
-                return i + 1  # 返回可用的摄像头索引
+                return i  # 返回可用的摄像头索引
         return None  # 没有可用摄像头
     
     def run(self, detector, adjust):
