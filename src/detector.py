@@ -76,10 +76,38 @@ class Detector:  # 定义检测器类
         ]  
         for rect in lights_filtered:  # 遍历过滤后的灯条
             box = cv2.boxPoints(rect).astype(int)  # 获取旋转矩形的四个点
-            mask = np.zeros(img_binary.shape, dtype=np.uint8)  # 创建掩膜
-            cv2.drawContours(mask, [box], -1, 255, -1)  # 在掩膜上绘制轮廓
-            masked_img = cv2.bitwise_and(img_darken, img_darken, mask=mask)  # 按掩膜提取区域
-            sum_r, sum_b = np.sum(masked_img[:, :, 2]), np.sum(masked_img[:, :, 0])  # 计算红色和蓝色的总和
+            
+            # 通过角点裁剪出对应的区域
+            right_up_x, right_up_y = box[0]
+            left_up_x, left_up_y = box[3]
+
+            up_x = int(abs(right_up_x - left_up_x) / 2 + min(right_up_x, left_up_x))
+            up_y = int(abs(right_up_y - left_up_y) / 2 + min(right_up_y, left_up_y))
+
+            right_down_x, right_down_y = box[1]
+            left_down_x, left_down_y = box[2]
+            
+            down_x = int((abs(right_down_x - left_down_x) / 2 + min(right_down_x, left_down_x)))
+            down_y = int((abs(right_down_y - left_down_y) / 2 + min(right_down_y, left_down_y)))
+            # 计算线段的长度
+            length = int(np.sqrt((down_x - up_x) ** 2 + (down_y - up_y) ** 2))
+            print(length)
+            # 创建一个新图像以存储裁剪的线段像素
+            roi = np.zeros((1, length, 3), dtype=np.uint8)
+
+            # 计算线段上的每个像素
+            for i in range(length):
+                # 计算当前像素的坐标
+                t = i / length  # 计算比例
+                current_x = int(up_x + (down_x - up_x) * t)
+                current_y = int(up_y + (down_y - up_y) * t)
+                            
+                # 添加边界检查
+                if 0 <= current_x < img_darken.shape[1] and 0 <= current_y < img_darken.shape[0]:
+                    roi[0, i] = img_darken[current_y, current_x]  # 保存像素值
+
+            #计算裁剪图像的红色和蓝色的总和
+            sum_r, sum_b = np.sum(roi[:, :, 2]), np.sum(roi[:, :, 0])  # 计算红色和蓝色的总和
             if self.color in [1, 2] and sum_b > sum_r:  # 根据模式识别颜色
                 light_blue = Light(rect, 1)  # 创建蓝色灯条对象
                 lights.append(light_blue)  # 添加蓝色灯条
