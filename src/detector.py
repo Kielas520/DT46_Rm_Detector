@@ -91,7 +91,6 @@ class Detector:  # 定义检测器类
             down_y = int((abs(right_down_y - left_down_y) / 2 + min(right_down_y, left_down_y)))
             # 计算线段的长度
             length = int(np.sqrt((down_x - up_x) ** 2 + (down_y - up_y) ** 2))
-            print(length)
             # 创建一个新图像以存储裁剪的线段像素
             roi = np.zeros((1, length, 3), dtype=np.uint8)
 
