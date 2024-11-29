@@ -100,14 +100,8 @@ if __name__ == "__main__":
         "line_angle_tol": 7,  # 线角度容差
         "height_tol": 10,  # 高度容差
         "width_tol": 10,  # 宽度容差
-        "cy_tol": 5  # 中心点的y轴容差
-    }
-    # 装甲板参数字典
-    armor_params = {
-        "armor_height/width_max": 3.5,  # 装甲板高度与宽度最大比值
-        "armor_height/width_min": 1,  # 装甲板高度与宽度最小比值
-        "armor_area_max": 11000,  # 装甲板最大面积
-        "armor_area_min": 200  # 装甲板最小面积
+        "cy_tol": 5,  # 中心点的y轴容差
+        "light_distance": 1.5 
     }
     # 图像参数字典
     binary_val = 35  # 参数值
@@ -120,12 +114,12 @@ if __name__ == "__main__":
         "light_dot": {1: (0, 0, 255), 0: (255, 0, 0)}  # 灯条中心点颜色映射
     }
     run_mode = {
-        "mode": 0,  # 模式设置 0: 视频流, 1: 静态图, 2: 无调试
-        "video": True,  # 是否使用视频
+        "mode": 1,  # 模式设置 0: 视频流, 1: 静态图, 2: 无调试
+        "video": False,  # 是否使用视频
         "url": "./photo/test.mp4",  # 视频路径
         "image_path": "./photo/red_1.jpg"  # 图片路径
     }
-    detector = Detector(detect_mode, binary_val, light_params, armor_params, color_params)  # 创建检测器对象
-    adjust = Adjust(light_params, armor_params, binary_val)
+    detector = Detector(detect_mode, binary_val, light_params, color_params)  # 创建检测器对象
+    adjust = Adjust(light_params, binary_val)
     cam = Cam(run_mode)
     cam.run(detector, adjust)

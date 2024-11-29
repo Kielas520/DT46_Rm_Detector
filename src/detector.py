@@ -2,26 +2,53 @@ import cv2  # 导入 OpenCV 库
 import numpy as np  # 导入 NumPy 库
 import math  # 导入数学库
 from loguru import logger
+import time  # 导入时间库
+
+def calculate_distance(point1, point2):
+    x1, y1 = point1  # 解包第一个点的坐标
+    x2, y2 = point2  # 解包第二个点的坐标
+    # 使用距离公式计算并返回结果
+    distance = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    return distance
+
+def time_logger(func):  # 定义装饰器
+    def wrapper(*args, **kwargs):  # 包装函数
+        start_time = time.time()  # 记录开始时间
+        result = func(*args, **kwargs)  # 调用原函数
+        end_time = time.time()  # 记录结束时间
+        print(f"函数 '{func.__name__}' 的运行时间: {end_time - start_time:.5f} 秒")  # 打印运行时间
+        return result  # 返回原函数的结果
+    return wrapper
 
 class Light:  # 定义灯条类
-    def __init__(self, rect, color):  # 初始化灯条的矩形和颜色
+    def __init__(self, up, down, angle, color):  # 初始化灯条的矩形和颜色
+        self.cx = int(abs(up[0] - down[0]) / 2 + min(up[0], down[0]))
+        self.cy = int(abs(up[1] - down[1]) / 2 + min(up[1], down[1]))
+        self.height = calculate_distance(up, down)
+        self.angle = angle
         self.color = color  # 设置灯条颜色
-        self.rect = rect  # 设置灯条矩形
+        self.up = up
+        self.down = down
 
 class Armor:  # 定义装甲板类
-    def __init__(self, rect):  # 初始化装甲板的矩形
+    def __init__(self, center):  # 初始化装甲板的矩形
         self.color = None  # 装甲板颜色初始化为 None
-        self.rect = rect  # 设置装甲板矩形
+        self.center = center
+        self.height = None
+        self.light1_up = None
+        self.light1_down = None
+        self.light2_up = None
+        self.light2_down = None
+
 
 class Detector:  # 定义检测器类
-    def __init__(self, detect_mode, binary_val, light_params, armor_params, color_params):  # 初始化检测器
+    def __init__(self, detect_mode, binary_val, light_params, color_params):  # 初始化检测器
         self.img = None
         self.img_binary = None
         self.img_darken = None
         self.binary_val = binary_val  # 二值化阈值
         self.color = detect_mode  # 颜色模式
         self.light_params = light_params  # 灯条参数
-        self.armor_params = armor_params  # 装甲板参数
         self.armor_color = color_params["armor_color"]  # 装甲板颜色映射
         self.armor_id = color_params["armor_id"]  # 装甲板 ID 映射
         self.light_color = color_params["light_color"]  # 灯条颜色映射
@@ -29,19 +56,15 @@ class Detector:  # 定义检测器类
         self.lights = []  # 存储灯条列表
         self.armors = []  # 存储装甲板列表
         self.armors_dict = {}  # 存储装甲板信息的字典
-        
-    def darker(self, img):  # 暗化图像函数
-        hsv_image = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)  # 转换为 HSV 颜色空间
-        hsv_image[:, :, 2] = hsv_image[:, :, 2] * 0.5  # 将 V 通道乘以 0.5，降低亮度
-        darker_image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)  # 转换回 BGR 颜色空间
-        return darker_image  # 返回暗化后的图像
-    
+        self.light_min_distance = None
+        self.light_distance = light_params["light_distance"]
+
+    @time_logger
     def process(self, img):  # 处理图像的函数
         self.img = img
-        self.img_darken = self.darker(cv2.convertScaleAbs(img, alpha=0.5))  # 调整亮度，降低亮度
-        _, self.img_binary = cv2.threshold(cv2.cvtColor(self.img_darken, cv2.COLOR_BGR2GRAY), self.binary_val, 255, cv2.THRESH_BINARY)  # 二值化处理
-        return self.img_darken, self.img_binary
-    
+        _, self.img_binary = cv2.threshold(cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY), self.binary_val, 255, cv2.THRESH_BINARY)  # 二值化处理
+        return self.img_binary
+ 
     def adjust(self, rect):  # 调整矩形的函数
         c, (w, h), angle = rect  # 解包矩形的中心、宽高和角度
         if w > h:  # 如果宽度大于高度
@@ -62,8 +85,9 @@ class Detector:  # 定义检测器类
                 min_b, max_b = self.project(b, normal)  # 计算多边形 b 的投影的最小值和最大值
                 if max_a < min_b or max_b < min_a:  # 检查是否相交
                     return False  # 不相交则返回 False
-    
-    def find_lights(self, img_darken, img_binary):  # 查找灯条的函数
+                
+    @time_logger    
+    def find_lights(self, img_binary):  # 查找灯条的函数
         lights = []
         contours, _ = cv2.findContours(img_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # 查找轮廓
         lights_filtered = [  # 过滤灯条
@@ -83,12 +107,15 @@ class Detector:  # 定义检测器类
 
             up_x = int(abs(right_up_x - left_up_x) / 2 + min(right_up_x, left_up_x))
             up_y = int(abs(right_up_y - left_up_y) / 2 + min(right_up_y, left_up_y))
+            up = (up_x, up_y)
 
             right_down_x, right_down_y = box[1]
             left_down_x, left_down_y = box[2]
             
             down_x = int((abs(right_down_x - left_down_x) / 2 + min(right_down_x, left_down_x)))
             down_y = int((abs(right_down_y - left_down_y) / 2 + min(right_down_y, left_down_y)))
+            down = (down_x, down_y)
+
             # 计算线段的长度
             length = int(np.sqrt((down_x - up_x) ** 2 + (down_y - up_y) ** 2))
             # 创建一个新图像以存储裁剪的线段像素
@@ -102,37 +129,62 @@ class Detector:  # 定义检测器类
                 current_y = int(up_y + (down_y - up_y) * t)
                             
                 # 添加边界检查
-                if 0 <= current_x < img_darken.shape[1] and 0 <= current_y < img_darken.shape[0]:
-                    roi[0, i] = img_darken[current_y, current_x]  # 保存像素值
+                if 0 <= current_x < self.img.shape[1] and 0 <= current_y < self.img.shape[0]:
+                    roi[0, i] = self.img[current_y, current_x]  # 保存像素值
 
             #计算裁剪图像的红色和蓝色的总和
             sum_r, sum_b = np.sum(roi[:, :, 2]), np.sum(roi[:, :, 0])  # 计算红色和蓝色的总和
             if self.color in [1, 2] and sum_b > sum_r:  # 根据模式识别颜色
-                light_blue = Light(rect, 1)  # 创建蓝色灯条对象
+                light_blue = Light(up, down, rect[2],  1)  # 创建蓝色灯条对象
                 lights.append(light_blue)  # 添加蓝色灯条
             if self.color in [0, 2] and sum_r > sum_b:  # 根据模式识别颜色
-                light_red = Light(rect, 0)  # 创建红色灯条对象
+                light_red = Light(up, down, rect[2], 0)  # 创建红色灯条对象
                 lights.append(light_red)  # 添加红色灯条
         self.lights = lights
         return self.lights
+    
+    def angle_to_slope(self, angle_degrees):
+        # 将角度转换为弧度
+        angle_radians = math.radians(angle_degrees)
+        # 计算斜率
+        slope = math.tan(angle_radians)
+        return slope
+        
+    def is_close(self, light1, light2, light_params):  # 检查两个矩形是否接近
+        distance = calculate_distance((light1.cx, light1.cy), (light2.cx, light2.cy))
+        angle_diff = min(abs(light1.angle - light2.angle), 360 - abs(light1.angle - light2.angle))  # 计算角度差
+        print(light1.angle)
+        if angle_diff <= light_params["light_angle_tol"]:  # 判断角度差是否在容忍范围内
+            if abs(light1.height - light2.height) <= light_params["height_tol"]:  # 判断高差
+                line_angle = math.degrees(math.atan2(light1.cy - light2.cy, light1.cx - light2.cx))  # 计算连线角度
 
-    def is_close(self, rect1, rect2, light_params):  # 检查两个矩形是否接近
-        (cx1, cy1), (w1, h1), angle1 = rect1  # 获取第一个旋转矩形的信息
-        (cx2, cy2), (w2, h2), angle2 = rect2  # 获取第二个旋转矩形的信息
-        distance = math.sqrt((cx1 - cx2) ** 2 + (cy1 - cy2) ** 2)  # 计算中心点之间的距离
-        if distance > light_params["light_distance_min"]:  # 首先判断距离是否大于灯条最小距离
-            angle_diff = min(abs(angle1 - angle2), 360 - abs(angle1 - angle2))  # 计算角度差
-            if angle_diff <= light_params["light_angle_tol"]:  # 判断角度差是否在容忍范围内
-                if abs(h1 - h2) <= light_params["height_tol"] and abs(w1 - w2) <= light_params["width_tol"]:  # 判断高宽差
-                    line_angle = math.degrees(math.atan2(cy2 - cy1, cx2 - cx1))  # 计算连线角度
-                    if line_angle > 90:  # 将角度标准化到 -90° 到 90° 之间
-                        line_angle -= 180  
-                    elif line_angle < -90:
-                        line_angle += 180   
-                    if (abs(line_angle - angle1) <= light_params["line_angle_tol"] or abs(line_angle - angle2) <= light_params["line_angle_tol"] or abs(cy1 - cy2) < light_params["cy_tol"]):  
-                        return True  # 检查是否垂直或者判断中心点垂直坐标差         
-        return False  # 不满足条件则返回 False
-
+                if line_angle <= 270  and line_angle > 180:
+                    line_angle = 270 - line_angle  # 计算补角
+                if line_angle <= 180  and line_angle > 90:
+                    line_angle = -(line_angle - 90)  # 计算补角 
+                if line_angle <= 90  and line_angle > 0:
+                    line_angle = 90 - line_angle                     
+                if line_angle <= 360  and line_angle > 270:
+                    line_angle = -(line_angle - 270)             
+                #if abs(line_angle - light1.angle) >= light_params["line_angle_tol"] and abs(line_angle - light2.angle) >= light_params["line_angle_tol"] : 
+                real_distance = min(light1.height, light2.height)
+                # 计算斜率
+                slope1 = self.angle_to_slope(light1.angle)
+                slope2 = self.angle_to_slope(light2.angle)           
+                slope_line = self.angle_to_slope(line_angle)
+                
+                if abs(slope1 * slope_line + 1) < light_params["line_angle_tol"] and abs(slope2 * slope_line + 1) < light_params["line_angle_tol"]:
+                    cv2.line(self.img, (light1.cx, light1.cy),(light2.cx,light2.cy), (0, 255, 0), 2)  # 绿色线条，厚度为2
+                    if distance > real_distance and distance < distance * light_params["light_distance"]:
+                        self.light_min_distance = real_distance
+                        return True, distance # 检查是否垂直或者判断中心点垂直坐标差 
+                    elif abs(light1.cy - light2.cy) < light_params["cy_tol"]: 
+                        real_distance = min(light1.height, light2.height)
+                        if distance > real_distance and distance < distance * light_params["light_distance"]:
+                            self.light_min_distance = real_distance
+                            return True, distance # 检查是否垂直或者判断中心点垂直坐标差 
+        return False, None # 不满足条件则返回 False
+    @time_logger
     def is_armor(self, lights):  # 检查是否为装甲板的函数
         armors = []
         processed_indices = set()  # 用于存储已处理的矩形索引
@@ -141,52 +193,56 @@ class Detector:  # 定义检测器类
             if i in processed_indices:  # 如果该矩形已处理，跳过
                 continue
             light = lights[i]  # 取出当前灯条
-            close_lights = [j for j in range(lights_count) if j != i and lights[j].color == light.color and self.is_close(light.rect, lights[j].rect, self.light_params)]  # 找到接近的灯条
-            if close_lights:  # 如果找到接近的灯条
-                group = [light.rect] + [lights[j].rect for j in close_lights]  # 将当前灯条和接近的灯条组合成一组
-                points = np.concatenate([cv2.boxPoints(light) for light in group])  # 获取所有灯条的四个顶点
-                armor_raw = cv2.minAreaRect(points)  # 计算最小外接矩形
-                if self.armor_params["armor_area_min"] <= armor_raw[1][0] * armor_raw[1][1] <= self.armor_params["armor_area_max"]:  # 限制识别到的装甲板面积大小
-                    armor_flit = self.adjust(armor_raw)  # 调整装甲板矩形
-                    if self.armor_params["armor_height/width_min"] <= armor_flit[1][1] / armor_flit[1][0] <= self.armor_params["armor_height/width_max"]:  # 限制识别到的装甲板矩形高宽比
-                        armor = Armor(self.adjust(armor_flit))  # 创建装甲板对象
+            for j in range(lights_count) : 
+                if j != i and lights[j].color == light.color :  # 如果找到接近的灯条
+                    close, real_distance = self.is_close(light, lights[j], self.light_params)
+                    if close == True and real_distance is not None :
+                        armor_cx = int(abs(light.cx - lights[j].cx) / 2 + min(light.cx, lights[j].cx))
+                        armor_cy = int(abs(light.cy - lights[j].cy) / 2 + min(light.cy, lights[j].cy))
+                        armor_center = (armor_cx, armor_cy)
+                        armor = Armor(armor_center)  # 创建装甲板对象
+                        armor.height = self.light_distance
+                        armor.light1_up = light.up
+                        armor.light1_down = light.down
+                        armor.light2_up = lights[j].up
+                        armor.light2_down = lights[j].down
                         armor.color = light.color  # 设置装甲板颜色
                         armors.append(armor)  # 添加装甲板到列表
-                        processed_indices.update([i] + close_lights)  # 将已处理的矩形索引添加到 processed_indices 中
+                        processed_indices.update([i])  # 将已处理的矩形索引添加到 processed_indices 中
+                        processed_indices.update([j])  # 将已处理的矩形索引添加到 processed_indices 中
         self.armors = armors
         return self.armors
-
+    @time_logger
     def id_armor(self):  # 为装甲板分配 ID 的函数
         armors_dict = {}
         for armor in self.armors:  # 遍历所有装甲板矩形
-            center, (width, height), angle = armor.rect  # 获取装甲板矩形的中心、宽高和角度
-            max_size = max(width, height)  # 计算最大尺寸
+            center = armor.center
             armors_dict[f"{int(center[0])}"] = {  # 添加装甲板信息到字典
                 "armor_id": self.armor_color[armor.color],  # 添加 armor_id
-                "height": int(max_size),  # 添加高度
+                "height": int(armor.height),  # 添加高度
                 "center": [int(center[0]), int(center[1])]  # 添加中心点
             }
         self.armors_dict = armors_dict
         return self.armors_dict
-    
+    @time_logger    
     def find_armor(self):  # 查找装甲板的函数
         self.is_armor(self.lights)  # 查找装甲板
         self.id_armor()  # 为装甲板分配 ID
 
     def draw_lights(self, img):  # 绘制灯条的函数
         for light in self.lights:  # 遍历灯条
-            box = cv2.boxPoints(light.rect).astype(int)  # 获取灯条的轮廓点
-            cv2.drawContours(img, [box], 0, self.light_color[light.color], 1)  # 绘制灯条的轮廓
-            cv2.circle(img, tuple(map(int, light.rect[0])), 1, self.light_dot[light.color], -1)  # 绘制灯条的中心点
+        # 绘制直线
+            cv2.line(img, light.up, light.down, self.light_color[light.color], 1) 
+            # 绘制中心点
+            cv2.circle(img, (light.cx, light.cy), 5, self.light_dot[light.color], -1)  # 5是半径，-1表示填充
         return img
 
     def draw_armors(self, img):  # 绘制装甲板的函数
         for armor in self.armors:  # 遍历装甲板
-            center, (max_size, max_size), angle = armor.rect  # 获取装甲板的四个顶点
-            box = cv2.boxPoints(((center[0], center[1]), (max_size, max_size), angle)).astype(int)  # 获取装甲板的四个顶点
-            cv2.drawContours(img, [box], 0, self.armor_color[armor.color], 2)  # 绘制装甲板的轮廓
-            cv2.circle(img, (int(center[0]), int(center[1])), 5, self.armor_color[armor.color], -1)  # 绘制装甲板中心点
-            center_x, center_y = map(int, armor.rect[0])  # 获取中心坐标
+            center = armor.center
+            cv2.line(img, armor.light1_up, armor.light2_down, self.armor_color[armor.color], 1) 
+            cv2.line(img, armor.light2_up, armor.light1_down, self.armor_color[armor.color], 1) 
+            center_x, center_y = map(int, center)  # 获取中心坐标
             cv2.putText(img, f"({center_x}, {center_y})", (center_x, center_y),  # 在图像上标记坐标
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (120, 255, 255), 2)  # 绘制文本
         return img
@@ -203,10 +259,10 @@ class Detector:  # 定义检测器类
         drawn = self.draw_img()
         cv2.namedWindow("Detected",cv2.WINDOW_NORMAL)
         cv2.imshow("Detected", drawn)      # cv2.namedWindow("raw",cv2.WINDOW_NORMAL) # cv2.imshow("raw", self.img)       
-        
+    @time_logger        
     def detect(self, frame):  # 检测函数
-        frame_darken, frame_binary = self.process(frame)  # 处理图像
-        self.find_lights(frame_darken, frame_binary)  # 查找灯条
+        frame_binary = self.process(frame)  # 处理图像
+        self.find_lights(frame_binary)  # 查找灯条
         self.find_armor()  # 查找装甲板        print(self.armors_dict)  # 打印装甲板信息字典
         return self.armors_dict
         
@@ -214,26 +270,19 @@ if __name__ == "__main__":  # 主程序入口
     # 模式参数字典
     detect_mode =  2  # 颜色参数 0: 识别红色装甲板, 1: 识别蓝色装甲板, 2: 识别全部装甲板
     # 图像参数字典
-    binary_val = 35  
+    binary_val = 170  
     # 灯条参数字典
     light_params = {
-        "light_distance_min": 20,  # 最小灯条距离
         "light_area_min": 5,  # 最小灯条面积
         "light_angle_min": -35,  # 最小灯条角度
         "light_angle_max": 35,  # 最大灯条角度
-        "light_angle_tol": 5,  # 灯条角度容差
-        "line_angle_tol": 7,  # 线角度容差
+        "light_angle_tol": 6,  # 灯条角度容差
+        "line_angle_tol": 1.1,  # 线角度容差
         "height_tol": 15,  # 高度容差
-        "width_tol": 15,  # 宽度容差
-        "cy_tol": 5  # 中心点的y轴容差
+        "cy_tol": 5,  # 中心点的y轴容差
+        "light_distance": 1.5
     }
-    # 装甲板参数字典
-    armor_params = {
-        "armor_height/width_max": 3.5,  # 装甲板高度与宽度最大比值
-        "armor_height/width_min": 1,  # 装甲板高度与宽度最小比值
-        "armor_area_max": 11000,  # 装甲板最大面积
-        "armor_area_min": 200  # 装甲板最小面积
-    }
+
     # 颜色参数字典
     color_params = {
         "armor_color": {1: (255, 255, 0), 0: (128, 0, 128)},  # 装甲板颜色映射
@@ -241,7 +290,7 @@ if __name__ == "__main__":  # 主程序入口
         "light_color": {1: (200, 71, 90), 0: (0, 100, 255)},  # 灯条颜色映射
         "light_dot": {1: (0, 0, 255), 0: (255, 0, 0)}  # 灯条中心点颜色映射
     }
-    detector = Detector(detect_mode, binary_val, light_params, armor_params, color_params)  # 创建检测器对象
+    detector = Detector(detect_mode, binary_val, light_params, color_params)  # 创建检测器对象
     info = detector.detect(cv2.imread('./photo/red_2.jpg'))  # 读取图像并进行检测
     logger.info(info) # 打印检测结果
     detector.display()  # 显示图像
