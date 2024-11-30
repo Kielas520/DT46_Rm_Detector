@@ -1,15 +1,15 @@
-from PIL import Image, ImageDraw
+import numpy as np
+import cv2
 
 # 创建图像
-image = Image.new('RGB', (640, 480), 'white')
-side_length = int(85000 ** 0.5)  # 边长为45
-draw = ImageDraw.Draw(image)
+# 创建一个 640x480 的白色图像
+height, width = 480, 640
+white_image = np.ones((height, width, 3), dtype=np.uint8) * 255
+x1, y1 = 200, 300
 
-# 计算正方形位置并绘制
-x1 = (640 - side_length) // 2
-y1 = (480 - side_length) // 2
-draw.rectangle([x1, y1, x1 + side_length, y1 + side_length], outline='black', width=2)
+rect = (x1, y1), (50, 100), -95
+box = cv2.boxPoints(rect).astype(np.int32)
+cv2.drawContours(white_image, [box], 0, (255, 0, 0), thickness=1)  # 绘制旋转矩形，颜色为蓝色，线宽为2
 
-# 保存并显示图像
-image.save('./photo/output_image.png')
-image.show()
+cv2.imshow("White Image", white_image)
+cv2.waitKey(0)

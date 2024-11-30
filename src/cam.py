@@ -49,7 +49,6 @@ class Cam():
                 if adjust.flag:
                     detector.binary_val = adjust.binary_val
                     detector.light_params = adjust.light_params
-                    detector.armor_params = adjust.armor_params
                     adjust.flag = False
                 
                 end_time = time.time()  # 记录帧处理结束时间
@@ -74,7 +73,6 @@ class Cam():
                 if adjust.flag:
                     detector.binary_val = adjust.binary_val
                     detector.light_params = adjust.light_params
-                    detector.armor_params = adjust.armor_params
                     adjust.flag = False
                 end_time = time.time()  # 记录帧处理结束时间
                 detection_time = (end_time - start_time) * 1000  # 转换为毫秒
@@ -89,23 +87,20 @@ class Cam():
             
 if __name__ == "__main__":
     # 模式参数字典
-    detect_mode = 2  # 颜色参数 0: 识别红色装甲板, 1: 识别蓝色装甲板, 2: 识别全部装甲板
+    detect_mode =  2  # 颜色参数 0: 识别红色装甲板, 1: 识别蓝色装甲板, 2: 识别全部装甲板
+    # 图像参数字典
+    binary_val = 170  
     # 灯条参数字典
     light_params = {
-        "light_distance_min": 20,  # 最小灯条距离
         "light_area_min": 5,  # 最小灯条面积
-        "light_angle_min": -35,  # 最小灯条角度
-        "light_angle_max": 35,  # 最大灯条角度
-        "light_angle_tol": 5,  # 灯条角度容差
-        "line_angle_tol": 7,  # 线角度容差
-        "height_tol": 10,  # 高度容差
-        "width_tol": 10,  # 宽度容差
-        "cy_tol": 5,  # 中心点的y轴容差
-        "light_distance": 1.5 
+        "light_angle_min": -45,  # 最小灯条角度
+        "light_angle_max": 45,  # 最大灯条角度
+        "light_angle_tol": 15,  # 灯条角度容差
+        "vertical_discretization": 613,  # 垂直离散
+        "height_tol": 8,  # 高度容差
+        "cy_tol": 13,  # 中心点的y轴容差
+        "height_multiplier": 3 
     }
-    # 图像参数字典
-    binary_val = 35  # 参数值
-
     # 颜色参数字典
     color_params = {
         "armor_color": {1: (255, 255, 0), 0: (128, 0, 128)},  # 装甲板颜色映射
@@ -114,8 +109,8 @@ if __name__ == "__main__":
         "light_dot": {1: (0, 0, 255), 0: (255, 0, 0)}  # 灯条中心点颜色映射
     }
     run_mode = {
-        "mode": 1,  # 模式设置 0: 视频流, 1: 静态图, 2: 无调试
-        "video": False,  # 是否使用视频
+        "mode": 2,  # 模式设置 0: 视频流, 1: 静态图, 2: 无调试
+        "video": True,  # 是否使用视频
         "url": "./photo/test.mp4",  # 视频路径
         "image_path": "./photo/red_1.jpg"  # 图片路径
     }
