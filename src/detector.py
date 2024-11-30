@@ -9,7 +9,8 @@ def time_logger(func):  # 定义装饰器
         start_time = time.time_ns()  # 记录开始时间
         result = func(*args, **kwargs)  # 调用原函数
         end_time = time.time_ns()  # 记录结束时间
-        print(f"函数 '{func.__name__}' 的运行时间: {(end_time - start_time)/1e6} ms")  # 打印运行时间
+        dt = end_time - start_time
+        print(f"函数 '{func.__name__}' 的运行时间: {dt/1e6} ms, fps: {1/(dt/1e9)} ")  # 打印运行时间
         return result  # 返回原函数的结果
     return wrapper
 
@@ -63,12 +64,12 @@ class Armor:  # 定义装甲板类
     def __init__(self, light1, light2, height):  # 初始化装甲板的矩形
         armor_cx = int(abs(light1.cx - light2.cx) / 2 + min(light1.cx, light2.cx))
         armor_cy = int(abs(light1.cy - light2.cy) / 2 + min(light1.cy, light2.cy))
+        self.center = (armor_cx, armor_cy)
         self.light1_up = light1.up
         self.light1_down = light1.down
         self.light2_up = light2.up
         self.light2_down = light2.down
         self.color = light1.color  # 装甲板颜色初始化为 None
-        self.center = (armor_cx, armor_cy)
         self.height = height
 
 class Detector:  # 定义检测器类
@@ -76,6 +77,9 @@ class Detector:  # 定义检测器类
         self.img = None
         self.img_binary = None
         self.img_darken = None
+        self.lights = []  # 存储灯条列表
+        self.armors = []  # 存储装甲板列表
+        self.armors_dict = {}  # 存储装甲板信息的字典
         self.binary_val = binary_val  # 二值化阈值
         self.color = detect_mode  # 颜色模式
         self.light_params = light_params  # 灯条参数
@@ -83,10 +87,9 @@ class Detector:  # 定义检测器类
         self.armor_id = color_params["armor_id"]  # 装甲板 ID 映射
         self.light_color = color_params["light_color"]  # 灯条颜色映射
         self.light_dot = color_params["light_dot"]  # 灯条中心点颜色映射
-        self.lights = []  # 存储灯条列表
-        self.armors = []  # 存储装甲板列表
-        self.armors_dict = {}  # 存储装甲板信息的字典
         self.height_multiplier = light_params["height_multiplier"]
+
+
     @time_logger 
     def process(self, img):  # 处理图像的函数
         self.img = img

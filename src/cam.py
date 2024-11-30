@@ -109,7 +109,7 @@ if __name__ == "__main__":
         "light_dot": {1: (0, 0, 255), 0: (255, 0, 0)}  # 灯条中心点颜色映射
     }
     run_mode = {
-        "mode": 2,  # 模式设置 0: 视频流, 1: 静态图, 2: 无调试
+        "mode": 0,  # 模式设置 0: 视频流, 1: 静态图, 2: 无调试
         "video": True,  # 是否使用视频
         "url": "./photo/test.mp4",  # 视频路径
         "image_path": "./photo/red_1.jpg"  # 图片路径
