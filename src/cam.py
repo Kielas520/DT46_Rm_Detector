@@ -2,7 +2,7 @@ import cv2  # 导入 OpenCV 库
 import time  # 导入时间库
 from detector import Detector  # 从 detector 导入 Detector 类
 from adjust import Adjust  # 导入调试代码
-from loguru import logger
+# from loguru import logger
 
 class Cam():
     def __init__(self, run_mode):
@@ -10,7 +10,7 @@ class Cam():
         self.video = run_mode["video"]
         self.url = run_mode["url"]
         self.image_path = run_mode["image_path"]
-    
+
     # 获取第一个可用的摄像头索引
     def get_first_available_camera(self):
         """获取第一个可用的摄像头索引"""
@@ -20,7 +20,7 @@ class Cam():
                 cap.release()  # 释放摄像头
                 return i  # 返回可用的摄像头索引
         return None  # 没有可用摄像头
-    
+
     def run(self, detector, adjust):
         camera_index = self.get_first_available_camera()  # 获取可用摄像头
         if camera_index is None:  # 如果没有找到可用摄像头
@@ -31,6 +31,8 @@ class Cam():
 
         if self.mode in [0, 2]:  # 处理视频流
             video_stream = cv2.VideoCapture(camera_index)  # 打开视频流
+            video_stream.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            video_stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             if not video_stream.isOpened():  # 检查视频流是否成功打开
                 print("错误: 无法打开视频流。")
             if self.mode == 0:
@@ -41,23 +43,24 @@ class Cam():
                 if not ret:  # 如果未成功读取帧
                     print("错误: 无法读取帧")
                     break  # 退出循环
-                
+
                 info = detector.detect(frame)  # 使用 detector 进行检测
                 if self.mode == 0:
                     detector.display()
-                
+
                 if adjust.flag:
                     detector.binary_val = adjust.binary_val
                     detector.light_params = adjust.light_params
                     adjust.flag = False
-                
+
                 end_time = time.time()  # 记录帧处理结束时间
                 detection_time = (end_time - start_time) * 1000  # 转换为毫秒
-                logger.info(f"class_id: {info}")  # 输出检测结果
-                logger.debug(f"检测延迟: {int(detection_time)} 毫秒")  # 输出检测延迟
-                
+                print(f"class_id: {info}")  # 输出检测结果
+                print(f"检测延迟: {int(detection_time)} 毫秒")  # 输出检测延迟
+
                 if cv2.waitKey(1) & 0xFF == ord("q"):  # 检测按键
                     break  # 退出循环
+                time.sleep(0.01)
             video_stream.release()  # 释放视频流
             cv2.destroyAllWindows()  # 关闭所有窗口
 
@@ -76,20 +79,20 @@ class Cam():
                     adjust.flag = False
                 end_time = time.time()  # 记录帧处理结束时间
                 detection_time = (end_time - start_time) * 1000  # 转换为毫秒
-                logger.info(f"class_id: {info}")  # 输出检测结果
-                logger.debug(f"检测延迟: {int(detection_time)} 毫秒")  # 输出检测延迟
+                print(f"class_id: {info}")  # 输出检测结果
+                print(f"检测延迟: {int(detection_time)} 毫秒")  # 输出检测延迟
                 if cv2.waitKey(1) & 0xFF == ord("q"):  # 检测按键
                     break  # 退出循环
             cv2.destroyAllWindows()  # 关闭所有窗口
 
         else:  # 如果模式无效
             print("无效的模式，程序结束。")  # 输出错误信息
-            
+
 if __name__ == "__main__":
     # 模式参数字典
     detect_mode =  2  # 颜色参数 0: 识别红色装甲板, 1: 识别蓝色装甲板, 2: 识别全部装甲板
     # 图像参数字典
-    binary_val = 170  
+    binary_val = 170
     # 灯条参数字典
     light_params = {
         "light_area_min": 5,  # 最小灯条面积
@@ -99,7 +102,7 @@ if __name__ == "__main__":
         "vertical_discretization": 613,  # 垂直离散
         "height_tol": 8,  # 高度容差
         "cy_tol": 13,  # 中心点的y轴容差
-        "height_multiplier": 3 
+        "height_multiplier": 3
     }
     # 颜色参数字典
     color_params = {
